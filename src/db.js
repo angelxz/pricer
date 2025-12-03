@@ -20,6 +20,29 @@ db.version(1).stores({
   productExpenses: '++id, productId, expenseTypeId, value' 
 });
 
+db.version(2).stores({
+  // Materials: ID, Name, Description, Unit ID
+  materials: '++id, name, description, unitId',
+  
+  // Units: ID, Name
+  units: '++id, name',
+  
+  // Material Prices: ID, Material ID, Price, Date
+  materialPrices: '++id, materialId, price, date',
+  
+  // Products: ID, Name, Description
+  products: '++id, name, description',
+  
+  // BOM: Link between Product and Material with Quantity
+  bom: '++id, productId, materialId, quantity',
+  
+  // Expense Types (Nomenclature)
+  expenseTypes: '++id, name',
+  
+  // Product Expenses: Link between Product and Expense Type with Value
+  productExpenses: '++id, productId, expenseTypeId, value'
+});
+
 // Helper to check if material is used in any BOM (RQ-3) 
 export const isMaterialInUse = async (materialId) => {
   const count = await db.bom.where('materialId').equals(materialId).count();
