@@ -1,38 +1,103 @@
-.App {
-  text-align: center;
+:root {
+  --primary-blue: #0d2b6b; /* Matching header color */
+  --accent-yellow: #ffcc5c; /* Matching login/button color */
+  --bg-gray: #f4f6f8;
+  --text-dark: #333;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-gray);
+  margin: 0;
+  color: var(--text-dark);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Header */
+.navbar {
+  background-color: var(--primary-blue);
+  padding: 1rem 2rem;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.nav-links a {
+  color: white; /* */
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: 500;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.nav-links a:hover { color: var(--accent-yellow); }
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
 }
+
+.btn-primary {
+  background-color: #1976d2; /* Blue button from image-4.png */
+  color: white;
+}
+
+.btn-add {
+  background-color: #1976d2;
+  color: white;
+  text-transform: uppercase;
+}
+
+.btn-login {
+  background-color: var(--primary-blue);
+  color: white;
+  width: 100%;
+  padding: 10px;
+}
+
+/* Forms & Cards */
+.card-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.form-card {
+  background-color: var(--accent-yellow);
+  padding: 30px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Fixes padding issues */
+}
+
+/* Tables */
+.table-container { padding: 20px 40px; }
+.controls { display: flex; gap: 10px; margin-bottom: 20px; }
+
+table {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th { font-weight: 600; color: #555; }
