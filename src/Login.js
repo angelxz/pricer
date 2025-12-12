@@ -14,19 +14,19 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="card-container" style={{ alignItems: 'center', height: '80vh' }}>
-      <div className="form-card" style={{ textAlign: 'center' }}>
-        <h2>Login</h2>
+    <div className="login-card-container">
+      <div className="form-card">
+        <h2>Вход</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ textAlign: 'left' }}>
-            <label>Username</label>
+            <label>Потребителско име</label>
             <input type="text" value={username} onChange={e => setUsername(e.target.value)} />
           </div>
           <div className="form-group" style={{ textAlign: 'left' }}>
-            <label>Password</label>
+            <label>Парола</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
           </div>
-          <button type="submit" className="btn btn-login">Login</button>
+          <button type="submit" className="btn btn-form">Вход</button>
         </form>
       </div>
     </div>
