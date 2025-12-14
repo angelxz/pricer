@@ -45,7 +45,7 @@ const Products = () => {
   };
 
   const addBomRow = () => setBomData([...bomData, { materialId: '', quantity: 1 }]);
-
+  
   const updateBomRow = (index, field, value) => {
     const newBom = [...bomData];
     newBom[index][field] = value;
@@ -59,6 +59,12 @@ const Products = () => {
     newExpenses[index][field] = value;
     setExpensesData(newExpenses);
   };
+
+  // Изчистване на въведените материали и разходи
+  const resetBomExpenses = () =>  {
+    setBomData([])
+    setExpensesData([])
+  }
 
   const handleSaveProduct = async (e) => {
     e.preventDefault();
@@ -118,7 +124,7 @@ const Products = () => {
 
     const otherExpenses = detailsProduct.expenses.reduce((sum, expense) => sum + expense.value, 0);
     const totalCost = materialExpenses + otherExpenses;
-    const productPrice = totalCost + parseFloat(profit);
+    const productPrice = totalCost + (totalCost * parseFloat(profit) / 100);
 
     return { materialExpenses, totalCost, productPrice };
   };
@@ -132,7 +138,7 @@ const Products = () => {
             <div style={{ display: 'flex', gap: '10px' }}>
               <input 
                 type="text" 
-                placeholder="..." 
+                placeholder="Търси по №, име и описание" 
                 style={{ padding: '8px' }}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -176,10 +182,21 @@ const Products = () => {
             <p><strong>Име:</strong> {detailsProduct.name}</p>
             <p><strong>Описание:</strong> {detailsProduct.description}</p>
             <h3>Вложени материали</h3>
-            {detailsProduct.bom.map((item, index) => (
-              <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                {materialsList?.find(m => m.id === item.materialId)?.name || 'Unknown'} – {item.quantity} {unitsList?.find(m => m.id === (materialsList?.find(m => m.id === item.materialId)?.unitId)).name || 'Unknown'} х
-                <select
+
+            <table>
+                <thead>
+                  <th>Материал</th>
+                  <th>К-во</th>
+                  <th>М. ед.</th>
+                  <th>По цена</th>
+                </thead>
+                <tbody>
+                  {detailsProduct.bom.map((item, index) => (
+                    <tr>
+                      <td>{materialsList?.find(m => m.id === item.materialId)?.name || 'Unknown'}</td>
+                      <td>{item.quantity}</td>
+                      <td>{unitsList?.find(m => m.id === (materialsList?.find(m => m.id === item.materialId)?.unitId)).name || 'Unknown'}</td>
+                      <td><select
                   value={item.selectedPriceId || ''}
                   onChange={e => updateBomPriceSelection(index, parseInt(e.target.value))}>
                   {materialPrices
@@ -190,17 +207,28 @@ const Products = () => {
                         {p.price} лв. (към {p.date})
                       </option>
                     ))}
-                </select>
-              </div>
-            ))}
+                </select></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             <h3>Други разходи за производство</h3>
-            {detailsProduct.expenses.map((expense, index) => (
-              <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                {expenseTypes?.find(e => e.id === expense.expenseTypeId)?.name || 'Unknown'}: {expense.value} лв.
-              </div>
-            ))}
+              <table>
+                  <thead>
+                    <th>Разход</th>
+                    <th>На стойност</th>
+                  </thead>
+                  <tbody>
+                    {detailsProduct.expenses.map((expense, index) => (
+                      <tr>
+                        <td>{expenseTypes?.find(e => e.id === expense.expenseTypeId)?.name || 'Unknown'}</td>
+                        <td>{expense.value} лв.</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
             <h3>Надценка</h3>
-            <input type="number" value={profit} onChange={e => setProfit(e.target.value)} /> лв.
+            <input type="number" style={{width:70}} value={profit} onChange={e => setProfit(e.target.value)} /> %
             <h3>Изчисления</h3>
             <div>
               {(() => {
@@ -214,7 +242,7 @@ const Products = () => {
                 );
               })()}
             </div>
-            <button onClick={() => setView('list')} style={{ marginTop: '20px' }}>Обратно към списъка</button>
+            <button className="btn" onClick={() => setView('list')} style={{ marginTop: '20px' }}>Обратно към списъка</button>
           </div>
         </div>
       ) : (
@@ -248,11 +276,13 @@ const Products = () => {
                   </span>
                   <input type="number" placeholder="Количество" style={{flex: 1}} required
                          onChange={e => updateBomRow(index, 'quantity', e.target.value)} />
+                  <span>
+                    {unitsList.find(u => u.id === materialsList.find(p => p.id === parseInt(row.materialId))?.unitId)?.name  || '-' }
+                  </span>
                 </div>
                 
               ))}
               <button type="button" className="btn" onClick={addBomRow} style={{marginBottom: '20px'}}>+ Добави материал</button>
-              
               
               <hr />
               <h3>Други разходи</h3>
@@ -272,7 +302,7 @@ const Products = () => {
               <button type="button" className="btn" onClick={addExpenseRow} style={{marginBottom: '20px'}}>+ Добави разход</button>
               
               <button type="submit" className="btn btn-form">Добави</button>
-              <button type="button" onClick={() => setView('list')} className="btn" style={{marginTop: '10px', width: '100%'}}>Отказ</button>
+              <button type="button" onClick={() => {setView('list'); resetBomExpenses()}} className="btn" style={{marginTop: '10px', width: '100%'}}>Отказ</button>
             </form>
           </div>
         </div>

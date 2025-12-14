@@ -19,6 +19,8 @@ const Materials = () => {
   const [detailsMaterial, setDetailsMaterial] = useState(null);
   const [productsUsingMaterial, setProductsUsingMaterial] = useState([]);
 
+  const materialPrices = useLiveQuery(() => db.materialPrices.toArray());
+
   const materials = useLiveQuery(async () => {
     let collection = db.materials.toCollection();
 
@@ -187,6 +189,10 @@ const Materials = () => {
     setProductsUsingMaterial([]);
   };
 
+  const getMeasureName = () => {
+    return units.find(u => u.id === detailsMaterial.unitId)?.name || '-'
+  }
+
   if (!materials || !units) return null;
 
   return (
@@ -199,7 +205,7 @@ const Materials = () => {
             <div style={{ display: 'flex', gap: '10px' }}>
               <input 
                 type="text" 
-                placeholder="..." 
+                placeholder="Търси по №, име и описание" 
                 style={{ padding: '8px' }}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -254,19 +260,42 @@ const Materials = () => {
             <h2 style={{ textAlign: 'center' }}>Подробности за материал</h2>
             <p><strong>Име:</strong> {detailsMaterial.name}</p>
             <p><strong>Описание:</strong> {detailsMaterial.description}</p>
-            <p><strong>Мерна единица:</strong> {units.find(u => u.id === detailsMaterial.unitId)?.name || 'N/A'}</p>
-            <h3>Изделия, свързани с този материал</h3>
+            <p><strong>Мерна единица:</strong> {getMeasureName()}</p>
+            <h3>Изделия, произведени с този материал</h3>
             {productsUsingMaterial.length > 0 ? (
-              <ul>
-                {productsUsingMaterial.map(product => (
-                  <li key={product.id}>
-                    {product.name} ({product.count})
-                  </li>
-                ))}
-              </ul>
+            <table>
+                <thead>
+                  <th>Изделие</th>
+                  <th>Количество ({getMeasureName()})</th>
+                </thead>
+                <tbody>
+                  {productsUsingMaterial.map(product => (
+                    <tr>
+                      <td>{product.name}</td>
+                      <td>{product.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
               <p>Няма</p>
             )}
+            
+            <h3>Ценова листа</h3>
+            <table>
+                <thead>
+                  <th>Цена</th>
+                  <th>Към дата</th>
+                </thead>
+                <tbody>
+                  {materialPrices.filter(p => p.materialId === detailsMaterial.id).map((price, index) => (
+                    <tr>
+                      <td>{price.price}</td>
+                      <td>{price.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             <button className="btn" onClick={handleBackToList} style={{ marginTop: '20px' }}>Обратно към списъка</button>
           </div>
         </div>
@@ -329,7 +358,7 @@ const Materials = () => {
                 <button type="button" className="btn" onClick={handleAddPriceRow}>+ Добави</button>
               </div>
 
-              <button type="submit" className="btn btn-form">Добави</button>
+              <button type="submit" className="btn btn-form">Запази</button>
               <button type="button" onClick={() => setView('list')} className="btn" style={{marginTop: '10px', width: '100%'}}>Отказ</button>
             </form>
           </div>

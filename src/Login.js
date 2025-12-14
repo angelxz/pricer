@@ -5,9 +5,11 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const adminCredentials = { username: 'admin', password: 'pass' };
 
+  // Използва се примерен потребител с име "admin" и парола "pass"
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simple validation as per project scope
+  
     if (username === adminCredentials.username && password === adminCredentials.password) {
         onLogin(); 
     }
@@ -15,7 +17,7 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="login-card-container">
-      <div className="form-card">
+      <div className="login-card">
         <h2>Вход</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ textAlign: 'left' }}>

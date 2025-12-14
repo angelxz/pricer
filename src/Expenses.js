@@ -9,13 +9,13 @@ const Expenses = () => {
   const [isAddMode, setIsAddMode] = useState(false);
   const [name, setName] = useState('');
 
-  // Updated Query Logic: Filters based on activeSearch
   const expenseTypes = useLiveQuery(async () => {
     let collection = db.expenseTypes.toCollection();
 
     if (activeSearch.trim()) {
       const lowerTerm = activeSearch.toLowerCase();
-      // Filter matching ID or Name
+
+      // Търсене по № или име
       return collection.filter(e => 
         e.name.toLowerCase().includes(lowerTerm) ||
         e.id.toString().includes(lowerTerm)
@@ -50,7 +50,7 @@ const Expenses = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           <input 
             type="text" 
-            placeholder="..." 
+            placeholder="Търси по № и име" 
             style={{ padding: '8px' }}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -73,7 +73,10 @@ const Expenses = () => {
 
       <table>
         <thead>
-          <tr><th>№</th><th>Разход</th></tr>
+          <tr>
+            <th>№</th>
+            <th>Разход</th>
+          </tr>
         </thead>
         <tbody>
           {expenseTypes?.map(e => (
