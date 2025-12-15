@@ -7,21 +7,18 @@ import Products from './Products';
 import Expenses from './Expenses';
 import './App.css';
 
-// Header Component
+// Навигационна лента
 const Header = ({ onLogout }) => (
   <nav className="navbar">
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <span style={{ fontSize: '24px' }}><IoMdPaper/></span>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <strong>Bill of Materials</strong>
-      </div>
+    <div className="logo">
+      <IoMdPaper style={{fontSize: '45px'}}/>
     </div>
     <div className="nav-links">
-      <Link to="/products">Products</Link>
-      <Link to="/materials">Materials</Link>
-      <Link to="/expenses">Expenses</Link>
-      <Link to="/" onClick={onLogout}>Logout</Link>
+      <Link to="/products">Изделия</Link>
+      <Link to="/materials">Материали</Link>
+      <Link to="/expenses">Разходи</Link>
     </div>
+    <Link class="logout" to="/" onClick={onLogout}>Изход...</Link>
   </nav>
 );
 

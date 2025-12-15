@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { CgDetailsMore } from "react-icons/cg";
 import { db } from './db';
+import { IoMdSearch } from 'react-icons/io';
 
 const Products = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -31,6 +32,7 @@ const Products = () => {
   const materialsList = useLiveQuery(() => db.materials.toArray());
   const materialPrices = useLiveQuery(() => db.materialPrices.toArray());
   const expenseTypes = useLiveQuery(() => db.expenseTypes.toArray());
+  const unitsList = useLiveQuery(() => db.units.toArray());
 
   const handleSearch = () => {
     setActiveSearch(searchInput);
@@ -43,7 +45,7 @@ const Products = () => {
   };
 
   const addBomRow = () => setBomData([...bomData, { materialId: '', quantity: 1 }]);
-
+  
   const updateBomRow = (index, field, value) => {
     const newBom = [...bomData];
     newBom[index][field] = value;
@@ -57,6 +59,12 @@ const Products = () => {
     newExpenses[index][field] = value;
     setExpensesData(newExpenses);
   };
+
+  // Изчистване на въведените материали и разходи
+  const resetBomExpenses = () =>  {
+    setBomData([])
+    setExpensesData([])
+  }
 
   const handleSaveProduct = async (e) => {
     e.preventDefault();
@@ -116,36 +124,42 @@ const Products = () => {
 
     const otherExpenses = detailsProduct.expenses.reduce((sum, expense) => sum + expense.value, 0);
     const totalCost = materialExpenses + otherExpenses;
-    const productPrice = totalCost + parseFloat(profit);
+    const productPrice = totalCost + (totalCost * parseFloat(profit) / 100);
 
     return { materialExpenses, totalCost, productPrice };
   };
 
   return (
     <div className="table-container">
+      <h1>Изделия</h1>
       {view === 'list' ? (
         <>
           <div className="controls" style={{ justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '10px' }}>
               <input 
                 type="text" 
-                placeholder="Search" 
+                placeholder="Търси по №, име и описание" 
                 style={{ padding: '8px' }}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <button className="btn btn-primary" onClick={handleSearch}>
-                Search
+                <IoMdSearch style={{fontSize: 18}}/>
               </button>
             </div>
             <button className="btn btn-add" onClick={() => setView('add')}>
-              Add Product
+              Ново изделие
             </button>
           </div>
           <table>
             <thead>
-              <tr><th>ID</th><th>Name</th><th>Description</th><th>Actions</th></tr>
+              <tr>
+                <th>№</th>
+                <th>Име</th>
+                <th>Описание</th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               {products?.map(p => (
@@ -164,74 +178,93 @@ const Products = () => {
       ) : view === 'details' ? (
         <div className="card-container">
           <div className="form-card">
-            <h2>Product Details</h2>
-            <p><strong>Name:</strong> {detailsProduct.name}</p>
-            <p><strong>Description:</strong> {detailsProduct.description}</p>
-            <h3>Materials</h3>
-            {detailsProduct.bom.map((item, index) => (
-              <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                <span>{materialsList?.find(m => m.id === item.materialId)?.name || 'Unknown'}</span>
-                <span>Quantity: {item.quantity}</span>
-                <select
+            <h2>Подробности за изделие</h2>
+            <p><strong>Име:</strong> {detailsProduct.name}</p>
+            <p><strong>Описание:</strong> {detailsProduct.description}</p>
+            <h3>Вложени материали</h3>
+
+            <table>
+                <thead>
+                  <th>Материал</th>
+                  <th>К-во</th>
+                  <th>М. ед.</th>
+                  <th>По цена</th>
+                </thead>
+                <tbody>
+                  {detailsProduct.bom.map((item, index) => (
+                    <tr>
+                      <td>{materialsList?.find(m => m.id === item.materialId)?.name || 'Unknown'}</td>
+                      <td>{item.quantity}</td>
+                      <td>{unitsList?.find(m => m.id === (materialsList?.find(m => m.id === item.materialId)?.unitId)).name || 'Unknown'}</td>
+                      <td><select
                   value={item.selectedPriceId || ''}
-                  onChange={e => updateBomPriceSelection(index, parseInt(e.target.value))}
-                >
+                  onChange={e => updateBomPriceSelection(index, parseInt(e.target.value))}>
                   {materialPrices
                     ?.filter(p => p.materialId === item.materialId)
                     .sort((a, b) => new Date(b.date) - new Date(a.date))
                     .map(p => (
                       <option key={p.id} value={p.id}>
-                        {p.price} EUR (Date: {p.date})
+                        {p.price} лв. (към {p.date})
                       </option>
                     ))}
-                </select>
-              </div>
-            ))}
-            <h3>Other Expenses</h3>
-            {detailsProduct.expenses.map((expense, index) => (
-              <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                <span>{expenseTypes?.find(e => e.id === expense.expenseTypeId)?.name || 'Unknown'}</span>
-                <span>Value: {expense.value}</span>
-              </div>
-            ))}
-            <h3>Profit</h3>
-            <input type="number" value={profit} onChange={e => setProfit(e.target.value)} />
-            <h3>Calculations</h3>
+                </select></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            <h3>Други разходи за производство</h3>
+              <table>
+                  <thead>
+                    <th>Разход</th>
+                    <th>На стойност</th>
+                  </thead>
+                  <tbody>
+                    {detailsProduct.expenses.map((expense, index) => (
+                      <tr>
+                        <td>{expenseTypes?.find(e => e.id === expense.expenseTypeId)?.name || 'Unknown'}</td>
+                        <td>{expense.value} лв.</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+            <h3>Надценка</h3>
+            <input type="number" style={{width:70}} value={profit} onChange={e => setProfit(e.target.value)} /> %
+            <h3>Изчисления</h3>
             <div>
               {(() => {
                 const { materialExpenses, totalCost, productPrice } = calculateCosts();
                 return (
                   <>
-                    <p><strong>Material Expenses:</strong> {materialExpenses.toFixed(2)} BGN</p>
-                    <p><strong>Total Cost:</strong> {totalCost.toFixed(2)} BGN</p>
-                    <p><strong>Product Price (with Profit):</strong> {productPrice.toFixed(2)} BGN</p>
+                    <p><strong>Разходи за материали:</strong> {materialExpenses.toFixed(2)} лв.</p>
+                    <p><strong>Себестойност:</strong> {totalCost.toFixed(2)} лв.</p>
+                    <p><strong>Продажна цена:</strong> {productPrice.toFixed(2)} лв.</p>
                   </>
                 );
               })()}
             </div>
-            <button onClick={() => setView('list')} style={{ marginTop: '20px' }}>Back to List</button>
+            <button className="btn" onClick={() => setView('list')} style={{ marginTop: '20px' }}>Обратно към списъка</button>
           </div>
         </div>
       ) : (
         <div className="card-container">
           <div className="form-card">
-            <h2 style={{ textAlign: 'center' }}>Add Product</h2>
+            <h2 style={{ textAlign: 'center' }}>Ново изделие</h2>
             <form onSubmit={handleSaveProduct}>
               <div className="form-group">
-                <label>Product Name</label>
+                <label>Име</label>
                 <input required onChange={e => setProductData({...productData, name: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Description</label>
+                <label>Описание</label>
                 <input onChange={e => setProductData({...productData, description: e.target.value})} />
               </div>
               <hr />
-              <h3>Bill of Materials (Materials)</h3>
+              <h3>Вложени материали</h3>
               {bomData.map((row, index) => (
-                <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                <div class="form-row" key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                   <select required style={{flex: 2}} 
                           onChange={e => updateBomRow(index, 'materialId', e.target.value)}>
-                    <option value="">Select Material</option>
+                    <option value="">-- Избери материал --</option>
                     {materialsList?.map(m => (
                       <option key={m.id} value={m.id}>{m.name}</option>
                     ))}
@@ -239,31 +272,37 @@ const Products = () => {
                   <span>
                     {materialPrices
                       ?.filter(p => p.materialId === parseInt(row.materialId))
-                      .sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.price || 0} BGN
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.price || 0} лв.
                   </span>
-                  <input type="number" placeholder="Qty" style={{flex: 1}} required
+                  <input type="number" placeholder="Количество" style={{flex: 1}} required
                          onChange={e => updateBomRow(index, 'quantity', e.target.value)} />
+                  <span>
+                    {unitsList.find(u => u.id === materialsList.find(p => p.id === parseInt(row.materialId))?.unitId)?.name  || '-' }
+                  </span>
                 </div>
+                
               ))}
-              <button type="button" className="btn" onClick={addBomRow} style={{marginBottom: '20px'}}>+ Add Material</button>
+              <button type="button" className="btn" onClick={addBomRow} style={{marginBottom: '20px'}}>+ Добави материал</button>
+              
               <hr />
-              <h3>Other Expenses</h3>
+              <h3>Други разходи</h3>
               {expensesData.map((row, index) => (
-                <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                <div class="form-row" key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                   <select required style={{flex: 2}}
                           onChange={e => updateExpenseRow(index, 'expenseTypeId', e.target.value)}>
-                    <option value="">Select Expense Type</option>
+                    <option value="">-- Избери разход --</option>
                     {expenseTypes?.map(expense => (
                       <option key={expense.id} value={expense.id}>{expense.name}</option>
                     ))}
                   </select>
-                  <input type="number" placeholder="Value" style={{flex: 1}} required
+                  <input type="number" placeholder="Стойност" style={{flex: 1}} required
                          onChange={e => updateExpenseRow(index, 'value', e.target.value)} />
                 </div>
               ))}
-              <button type="button" className="btn" onClick={addExpenseRow} style={{marginBottom: '20px'}}>+ Add Expense</button>
-              <button type="submit" className="btn btn-login">Save</button>
-              <button type="button" onClick={() => setView('list')} className="btn" style={{marginTop: '10px', width: '100%'}}>Cancel</button>
+              <button type="button" className="btn" onClick={addExpenseRow} style={{marginBottom: '20px'}}>+ Добави разход</button>
+              
+              <button type="submit" className="btn btn-form">Добави</button>
+              <button type="button" onClick={() => {setView('list'); resetBomExpenses()}} className="btn" style={{marginTop: '10px', width: '100%'}}>Отказ</button>
             </form>
           </div>
         </div>
